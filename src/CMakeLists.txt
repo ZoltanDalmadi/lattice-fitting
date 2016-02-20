@@ -1,5 +1,6 @@
 add_executable(lattice-fitting
   lattice-fitting.cpp
+  ImageProcessor.cpp
   LatticeFittingWindow.cpp
   PointDetector.cpp
 )
