@@ -2,27 +2,23 @@
 #include "LatticeFittingWindow.hpp"
 
 LatticeFittingWindow::LatticeFittingWindow()
+  : _layout(new QGridLayout),
+    _imageLabel(new QLabel(this)),
+    _scrollArea(new QScrollArea(this)),
+    _slider(new QSlider(Qt::Horizontal, this)),
+    _imageProcessor(new ImageProcessor(this))
 {
-  _layout = new QGridLayout(this);
-
-  _imageLabel = new QLabel(this);
-//  _imageLabel->setBackgroundRole(QPalette::Base);
-//  _imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+  _imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
   _imageLabel->setScaledContents(true);
 
-  _pointsLabel = new QLabel(this);
-
-  _scrollArea = new QScrollArea(this);
   _scrollArea->setBackgroundRole(QPalette::Dark);
   _scrollArea->setWidget(_imageLabel);
 
-  _slider = new QSlider(Qt::Horizontal, this);
   _slider->setMinimum(1);
   _slider->setMaximum(250);
 
   _layout->addWidget(_scrollArea, 0, 0);
   _layout->addWidget(_slider, 1, 0);
-  _layout->addWidget(_pointsLabel, 1, 1);
 
   QWidget* centralWidget = new QWidget(this);
   centralWidget->setLayout(_layout);
@@ -31,6 +27,19 @@ LatticeFittingWindow::LatticeFittingWindow()
   createActions();
   createMenus();
 
+  // dialog --------------------------------------------------------------------
+  const auto picturesLocations =
+    QStandardPaths::standardLocations(QStandardPaths::PicturesLocation);
+
+  _openDialog = new QFileDialog(
+    this, tr("Open File"),
+    picturesLocations.isEmpty() ? QDir::currentPath() : picturesLocations.last()
+  );
+
+  _openDialog->setAcceptMode(QFileDialog::AcceptOpen);
+  _openDialog->selectMimeTypeFilter("image/jpeg");
+
+  setStatusBar(new QStatusBar());
   resize(QGuiApplication::primaryScreen()->availableSize() / 1.5);
 }
 
@@ -42,42 +51,32 @@ bool LatticeFittingWindow::loadFile(const QString& fileName)
     QMessageBox::information(
       this, QGuiApplication::applicationDisplayName(),
       tr("Cannot load %1.").arg(QDir::toNativeSeparators(fileName)));
+
     setWindowFilePath(QString());
     _imageLabel->setPixmap(QPixmap());
     _imageLabel->adjustSize();
     return false;
   }
 
-  cv::Mat rgb;
-  cv::cvtColor(_cvImage, rgb, CV_BGR2RGB);
-  auto pixmap = QPixmap::fromImage(
-                  QImage(static_cast<uchar*>(rgb.data),
-                         rgb.cols, rgb.rows, rgb.step, QImage::Format_RGB888));
-
-  _imageLabel->setPixmap(pixmap);
+  _imageLabel->setPixmap(_imageProcessor->mat2QPixmap(_cvImage));
   _imageLabel->adjustSize();
 
   cv::cvtColor(_cvImage, _cvGray, cv::COLOR_BGR2GRAY);
 
   setWindowFilePath(fileName);
 
+  statusBar()->showMessage("Image Loaded successfully.");
+
   return true;
 }
 
 void LatticeFittingWindow::open()
 {
-  const auto picturesLocations =
-    QStandardPaths::standardLocations(QStandardPaths::PicturesLocation);
+  while (_openDialog->exec() && !loadFile(_openDialog->selectedFiles().first()));
 
-  QFileDialog dialog(
-    this, tr("Open File"),
-    picturesLocations.isEmpty() ? QDir::currentPath() : picturesLocations.last()
-  );
-
-  dialog.setAcceptMode(QFileDialog::AcceptOpen);
-  dialog.selectMimeTypeFilter("image/jpeg");
-
-  while (dialog.exec() && !loadFile(dialog.selectedFiles().first()));
+  if (!_openDialog->selectedFiles().isEmpty())
+    _openDialog->setDirectory(
+      QFileInfo(_openDialog->selectedFiles().first()).path());
 }
 
 void LatticeFittingWindow::detect()
@@ -85,20 +84,14 @@ void LatticeFittingWindow::detect()
   cv::Mat points_image = _cvImage.clone();
   _pointDetector.detect(_cvGray, points_image, _points);
 
-  cv::cvtColor(points_image, points_image, CV_BGR2RGB);
-  auto pixmap = QPixmap::fromImage(
-                  QImage(static_cast<uchar*>(points_image.data),
-                         points_image.cols, points_image.rows,
-                         points_image.step, QImage::Format_RGB888));
-
-  _imageLabel->setPixmap(pixmap);
+  _imageLabel->setPixmap(_imageProcessor->mat2QPixmap(points_image));
   _imageLabel->adjustSize();
 }
 
 void LatticeFittingWindow::updatePointsDisplay()
 {
   auto value = _slider->value();
-  _pointsLabel->setText(QString::number(value));
+  statusBar()->showMessage("Max points: " + QString::number(value));
   _pointDetector._max_corners = value;
   detect();
 }
@@ -116,8 +109,8 @@ void LatticeFittingWindow::createActions()
   _detectAct = new QAction(tr("Detect Grid &Points"), this);
   _detectAct->setShortcut(tr("Ctrl+P"));
   connect(_detectAct, &QAction::triggered, this, &LatticeFittingWindow::detect);
-
-  connect(_slider, &QSlider::valueChanged, this, &LatticeFittingWindow::updatePointsDisplay);
+  connect(_slider, &QSlider::valueChanged, this,
+          &LatticeFittingWindow::updatePointsDisplay);
 }
 
 void LatticeFittingWindow::createMenus()

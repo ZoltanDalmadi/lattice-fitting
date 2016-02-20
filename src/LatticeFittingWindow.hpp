@@ -2,6 +2,7 @@
 #include <QMainWindow>
 #include <opencv2/opencv.hpp>
 #include "PointDetector.hpp"
+#include "ImageProcessor.hpp"
 
 class QAction;
 class QLabel;
@@ -10,6 +11,7 @@ class QScrollArea;
 class QScrollBar;
 class QSlider;
 class QGridLayout;
+class QFileDialog;
 
 class LatticeFittingWindow : public QMainWindow
 {
@@ -31,10 +33,13 @@ private:
   void createActions();
   void createMenus();
 
+  QGridLayout* _layout;
   QLabel* _imageLabel;
-  QLabel* _pointsLabel;
   QScrollArea* _scrollArea;
+  QSlider* _slider;
 
+  ImageProcessor* _imageProcessor;
+  QFileDialog* _openDialog;
   QAction* _openAct;
   QAction* _exitAct;
   QAction* _detectAct;
@@ -45,6 +50,4 @@ private:
   cv::Mat _cvImage;
   cv::Mat _cvGray;
   std::vector<cv::Point2f> _points;
-  QSlider* _slider;
-  QGridLayout* _layout;
 };
