@@ -9,8 +9,6 @@ class ImageProcessor : public QObject
 public:
   explicit ImageProcessor(QObject* parent = 0);
 
-signals:
-
 public slots:
   bool loadImage(const QString& fileName, cv::Mat& dest);
   QPixmap mat2QPixmap(const cv::Mat& image);

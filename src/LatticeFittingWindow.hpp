@@ -1,8 +1,6 @@
 #pragma once
 #include <QMainWindow>
 #include <opencv2/opencv.hpp>
-#include "PointDetector.hpp"
-#include "ImageProcessor.hpp"
 
 class QAction;
 class QLabel;
@@ -12,6 +10,8 @@ class QScrollBar;
 class QSlider;
 class QGridLayout;
 class QFileDialog;
+class ImageProcessor;
+class PointDetector;
 
 class LatticeFittingWindow : public QMainWindow
 {
@@ -27,8 +27,6 @@ private slots:
   void updatePointsDisplay();
 
 private:
-  friend class PointDetector;
-  PointDetector _pointDetector;
 
   void createActions();
   void createMenus();
@@ -39,6 +37,9 @@ private:
   QSlider* _slider;
 
   ImageProcessor* _imageProcessor;
+
+  PointDetector* _pointDetector;
+
   QFileDialog* _openDialog;
   QAction* _openAct;
   QAction* _exitAct;
@@ -49,5 +50,4 @@ private:
 
   cv::Mat _cvImage;
   cv::Mat _cvGray;
-  std::vector<cv::Point2f> _points;
 };

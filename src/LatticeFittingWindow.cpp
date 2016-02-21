@@ -1,12 +1,15 @@
 #include <QtWidgets>
 #include "LatticeFittingWindow.hpp"
+#include "PointDetector.hpp"
+#include "ImageProcessor.hpp"
 
 LatticeFittingWindow::LatticeFittingWindow()
   : _layout(new QGridLayout),
     _imageLabel(new QLabel(this)),
     _scrollArea(new QScrollArea(this)),
     _slider(new QSlider(Qt::Horizontal, this)),
-    _imageProcessor(new ImageProcessor(this))
+    _imageProcessor(new ImageProcessor(this)),
+    _pointDetector(new PointDetector(_cvImage, _cvGray, this))
 {
   _imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
   _imageLabel->setScaledContents(true);
@@ -81,10 +84,11 @@ void LatticeFittingWindow::open()
 
 void LatticeFittingWindow::detect()
 {
-  cv::Mat points_image = _cvImage.clone();
-  _pointDetector.detect(_cvGray, points_image, _points);
+  _pointDetector->detect();
 
-  _imageLabel->setPixmap(_imageProcessor->mat2QPixmap(points_image));
+  _imageLabel->setPixmap(
+    _imageProcessor->mat2QPixmap(_pointDetector->_points_image)
+  );
   _imageLabel->adjustSize();
 }
 
@@ -92,7 +96,7 @@ void LatticeFittingWindow::updatePointsDisplay()
 {
   auto value = _slider->value();
   statusBar()->showMessage("Max points: " + QString::number(value));
-  _pointDetector._max_corners = value;
+  _pointDetector->setMaxCorners(value);
   detect();
 }
 
