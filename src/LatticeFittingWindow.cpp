@@ -2,6 +2,7 @@
 #include "LatticeFittingWindow.hpp"
 #include "PointDetector.hpp"
 #include "ImageProcessor.hpp"
+#include "LatticeFittingDockWidget.hpp"
 
 LatticeFittingWindow::LatticeFittingWindow()
   : _layout(new QGridLayout),
@@ -9,7 +10,8 @@ LatticeFittingWindow::LatticeFittingWindow()
     _scrollArea(new QScrollArea(this)),
     _slider(new QSlider(Qt::Horizontal, this)),
     _imageProcessor(new ImageProcessor(this)),
-    _pointDetector(new PointDetector(_cvImage, _cvGray, this))
+    _pointDetector(new PointDetector(_cvImage, _cvGray, this)),
+    _dockWidget(new LatticeFittingDockWidget(this))
 {
   _imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
   _imageLabel->setScaledContents(true);
@@ -43,6 +45,9 @@ LatticeFittingWindow::LatticeFittingWindow()
   _openDialog->selectMimeTypeFilter("image/jpeg");
 
   setStatusBar(new QStatusBar());
+
+  addDockWidget(Qt::RightDockWidgetArea, _dockWidget);
+
   resize(QGuiApplication::primaryScreen()->availableSize() / 1.5);
 }
 

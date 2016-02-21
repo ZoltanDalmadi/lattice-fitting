@@ -12,6 +12,7 @@ class QGridLayout;
 class QFileDialog;
 class ImageProcessor;
 class PointDetector;
+class LatticeFittingDockWidget;
 
 class LatticeFittingWindow : public QMainWindow
 {
@@ -27,7 +28,6 @@ private slots:
   void updatePointsDisplay();
 
 private:
-
   void createActions();
   void createMenus();
 
@@ -47,6 +47,8 @@ private:
 
   QMenu* _fileMenu;
   QMenu* _detectMenu;
+
+  LatticeFittingDockWidget* _dockWidget;
 
   cv::Mat _cvImage;
   cv::Mat _cvGray;
