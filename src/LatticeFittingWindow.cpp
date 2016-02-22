@@ -67,7 +67,7 @@ bool LatticeFittingWindow::loadFile(const QString& fileName)
 
   setWindowFilePath(fileName);
 
-  statusBar()->showMessage("Image Loaded successfully.");
+  statusBar()->showMessage(QStringLiteral("Image Loaded successfully."), 10000);
 
   return true;
 }
