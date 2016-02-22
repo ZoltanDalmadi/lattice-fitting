@@ -25,10 +25,14 @@ public:
 private slots:
   void open();
   void detect();
+  void toggleDetect(bool toggle);
+  void threshold(int value);
+  void toggleThreshold(bool toggle);
 
 private:
   void createActions();
   void createMenus();
+  void resetImage();
 
   QLabel* _imageLabel;
   QScrollArea* _scrollArea;
@@ -47,5 +51,6 @@ private:
   QMenu* _detectMenu;
 
   cv::Mat _cvImage;
+  cv::Mat _cvThresh;
   cv::Mat _cvGray;
 };

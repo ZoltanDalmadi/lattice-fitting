@@ -9,7 +9,7 @@ LatticeFittingWindow::LatticeFittingWindow()
     _scrollArea(new QScrollArea(this)),
     _dockWidget(new LatticeFittingDockWidget(this)),
     _imageProcessor(new ImageProcessor(this)),
-    _pointDetector(new PointDetector(_cvImage, _cvGray, *_dockWidget->_pointDetectorWidget, this))
+    _pointDetector(new PointDetector(*_dockWidget->_pointDetectorWidget, this))
 {
   _imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
   _imageLabel->setScaledContents(true);
@@ -61,8 +61,7 @@ bool LatticeFittingWindow::loadFile(const QString& fileName)
     return false;
   }
 
-  _imageLabel->setPixmap(_imageProcessor->mat2QPixmap(_cvImage));
-  _imageLabel->adjustSize();
+  resetImage();
 
   cv::cvtColor(_cvImage, _cvGray, cv::COLOR_BGR2GRAY);
 
@@ -84,14 +83,50 @@ void LatticeFittingWindow::open()
 
 void LatticeFittingWindow::detect()
 {
-//  auto& detectorWidget = _dockWidget->_pointDetectorWidget;
+  if (_dockWidget->_thresholdWidget->isChecked()) {
+    _pointDetector->detect(_cvThresh, _cvThresh);
+    _imageLabel->setPixmap(
+      _imageProcessor->mat2QPixmapGray(_pointDetector->_points_image)
+    );
+  } else {
+    _pointDetector->detect(_cvImage, _cvGray);
+    _imageLabel->setPixmap(
+      _imageProcessor->mat2QPixmap(_pointDetector->_points_image)
+    );
+  }
 
-  _pointDetector->detect();
-
-  _imageLabel->setPixmap(
-    _imageProcessor->mat2QPixmap(_pointDetector->_points_image)
-  );
   _imageLabel->adjustSize();
+}
+
+void LatticeFittingWindow::toggleDetect(bool toggle)
+{
+  if (toggle) {
+    detect();
+  } else {
+    resetImage();
+
+    if (_dockWidget->_thresholdWidget->isChecked())
+      threshold(_dockWidget->_thresholdWidget->level());
+  }
+}
+
+void LatticeFittingWindow::threshold(int value)
+{
+  _imageProcessor->threshold(_cvGray, _cvThresh, static_cast<double>(value));
+  _imageLabel->setPixmap(_imageProcessor->mat2QPixmapGray(_cvThresh));
+  _imageLabel->adjustSize();
+}
+
+void LatticeFittingWindow::toggleThreshold(bool toggle)
+{
+  if (toggle) {
+    threshold(_dockWidget->_thresholdWidget->level());
+  } else {
+    resetImage();
+  }
+
+  if (_dockWidget->_pointDetectorWidget->isChecked())
+    detect();
 }
 
 void LatticeFittingWindow::createActions()
@@ -108,7 +143,14 @@ void LatticeFittingWindow::createActions()
   _detectAct->setShortcut(tr("Ctrl+P"));
   connect(_detectAct, &QAction::triggered, this, &LatticeFittingWindow::detect);
 
-  connect(_dockWidget->_pointDetectorWidget, SIGNAL(parameterChanged()), this, SLOT(detect()));
+  connect(_dockWidget->_pointDetectorWidget, SIGNAL(parameterChanged()), this,
+          SLOT(detect()));
+  connect(_dockWidget->_pointDetectorWidget, SIGNAL(toggled(bool)), this,
+          SLOT(toggleDetect(bool)));
+  connect(_dockWidget->_thresholdWidget, SIGNAL(levelChanged(int)), this,
+          SLOT(threshold(int)));
+  connect(_dockWidget->_thresholdWidget, SIGNAL(toggled(bool)), this,
+          SLOT(toggleThreshold(bool)));
 }
 
 void LatticeFittingWindow::createMenus()
@@ -123,4 +165,10 @@ void LatticeFittingWindow::createMenus()
 
   menuBar()->addMenu(_fileMenu);
   menuBar()->addMenu(_detectMenu);
+}
+
+void LatticeFittingWindow::resetImage()
+{
+  _imageLabel->setPixmap(_imageProcessor->mat2QPixmap(_cvImage));
+  _imageLabel->adjustSize();
 }
