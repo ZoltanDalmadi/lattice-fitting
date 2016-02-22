@@ -5,13 +5,11 @@
 #include "LatticeFittingDockWidget.hpp"
 
 LatticeFittingWindow::LatticeFittingWindow()
-  : _layout(new QGridLayout),
-    _imageLabel(new QLabel(this)),
+  : _imageLabel(new QLabel(this)),
     _scrollArea(new QScrollArea(this)),
-    _slider(new QSlider(Qt::Horizontal, this)),
+    _dockWidget(new LatticeFittingDockWidget(this)),
     _imageProcessor(new ImageProcessor(this)),
-    _pointDetector(new PointDetector(_cvImage, _cvGray, this)),
-    _dockWidget(new LatticeFittingDockWidget(this))
+    _pointDetector(new PointDetector(_cvImage, _cvGray, *_dockWidget->_pointDetectorWidget, this))
 {
   _imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
   _imageLabel->setScaledContents(true);
@@ -19,14 +17,11 @@ LatticeFittingWindow::LatticeFittingWindow()
   _scrollArea->setBackgroundRole(QPalette::Dark);
   _scrollArea->setWidget(_imageLabel);
 
-  _slider->setMinimum(1);
-  _slider->setMaximum(250);
+  auto layout = new QHBoxLayout;
+  layout->addWidget(_scrollArea);
 
-  _layout->addWidget(_scrollArea, 0, 0);
-  _layout->addWidget(_slider, 1, 0);
-
-  QWidget* centralWidget = new QWidget(this);
-  centralWidget->setLayout(_layout);
+  auto centralWidget = new QWidget(this);
+  centralWidget->setLayout(layout);
   setCentralWidget(centralWidget);
 
   createActions();
@@ -44,7 +39,7 @@ LatticeFittingWindow::LatticeFittingWindow()
   _openDialog->setAcceptMode(QFileDialog::AcceptOpen);
   _openDialog->selectMimeTypeFilter("image/jpeg");
 
-  setStatusBar(new QStatusBar());
+  setStatusBar(new QStatusBar);
 
   addDockWidget(Qt::RightDockWidgetArea, _dockWidget);
 
@@ -89,20 +84,14 @@ void LatticeFittingWindow::open()
 
 void LatticeFittingWindow::detect()
 {
+//  auto& detectorWidget = _dockWidget->_pointDetectorWidget;
+
   _pointDetector->detect();
 
   _imageLabel->setPixmap(
     _imageProcessor->mat2QPixmap(_pointDetector->_points_image)
   );
   _imageLabel->adjustSize();
-}
-
-void LatticeFittingWindow::updatePointsDisplay()
-{
-  auto value = _slider->value();
-  statusBar()->showMessage("Max points: " + QString::number(value));
-  _pointDetector->setMaxCorners(value);
-  detect();
 }
 
 void LatticeFittingWindow::createActions()
@@ -118,8 +107,8 @@ void LatticeFittingWindow::createActions()
   _detectAct = new QAction(tr("Detect Grid &Points"), this);
   _detectAct->setShortcut(tr("Ctrl+P"));
   connect(_detectAct, &QAction::triggered, this, &LatticeFittingWindow::detect);
-  connect(_slider, &QSlider::valueChanged, this,
-          &LatticeFittingWindow::updatePointsDisplay);
+
+  connect(_dockWidget->_pointDetectorWidget, SIGNAL(parameterChanged()), this, SLOT(detect()));
 }
 
 void LatticeFittingWindow::createMenus()

@@ -25,19 +25,17 @@ public:
 private slots:
   void open();
   void detect();
-  void updatePointsDisplay();
 
 private:
   void createActions();
   void createMenus();
 
-  QGridLayout* _layout;
   QLabel* _imageLabel;
   QScrollArea* _scrollArea;
-  QSlider* _slider;
+
+  LatticeFittingDockWidget* _dockWidget;
 
   ImageProcessor* _imageProcessor;
-
   PointDetector* _pointDetector;
 
   QFileDialog* _openDialog;
@@ -47,8 +45,6 @@ private:
 
   QMenu* _fileMenu;
   QMenu* _detectMenu;
-
-  LatticeFittingDockWidget* _dockWidget;
 
   cv::Mat _cvImage;
   cv::Mat _cvGray;
