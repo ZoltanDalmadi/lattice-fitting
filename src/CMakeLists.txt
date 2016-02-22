@@ -5,6 +5,7 @@ add_executable(lattice-fitting
   LatticeFittingWindow.cpp
   PointDetector.cpp
   ThresholdWidget.cpp
+  PointDetectorWidget.cpp
 )
 
 target_link_libraries(lattice-fitting
