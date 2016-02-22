@@ -11,6 +11,7 @@ ThresholdWidget::ThresholdWidget(QWidget* parent)
 
   _slider->setMaximum(255);
   _spinbox->setMaximum(255);
+  setLevel(128);
 
   auto layout = new QHBoxLayout(this);
   layout->addWidget(_label);
@@ -23,6 +24,8 @@ ThresholdWidget::ThresholdWidget(QWidget* parent)
 void ThresholdWidget::setLevel(int level)
 {
   _level = level;
+  _slider->setValue(_level);
+  _spinbox->setValue(_level);
   emit levelChanged(_level);
 }
 

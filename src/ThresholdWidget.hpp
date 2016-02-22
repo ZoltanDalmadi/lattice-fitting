@@ -6,6 +6,7 @@ class ThresholdWidget : public QGroupBox
   Q_OBJECT
 public:
   explicit ThresholdWidget(QWidget* parent = 0);
+  int level() const { return _level; }
 
 signals:
   void levelChanged(int level);
