@@ -1,7 +1,4 @@
-#include <QtWidgets>
 #include "LatticeFittingDockWidget.hpp"
-#include "ThresholdWidget.hpp"
-#include "PointDetectorWidget.hpp"
 
 LatticeFittingDockWidget::LatticeFittingDockWidget(QWidget* parent)
   : QDockWidget(QStringLiteral("Image Tools"), parent),
