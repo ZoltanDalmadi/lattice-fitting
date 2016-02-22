@@ -167,6 +167,4 @@ void PointDetectorWidget::createConnections()
 
   connect(_pointRadius, SIGNAL(valueChanged(int)),
           this, SLOT(notifyParameterChanged()));
-
-  connect(this, SIGNAL(toggled(bool)), this, SLOT(notifyParameterChanged()));
 }
