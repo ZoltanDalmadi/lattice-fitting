@@ -2,19 +2,16 @@
 #include "PointDetector.hpp"
 
 PointDetector::PointDetector
-(const cv::Mat& image, const cv::Mat& image_gray,
- PointDetectorWidget& widget, QObject* parent)
+(PointDetectorWidget& widget, QObject* parent)
   : QObject(parent),
-    _image(image),
-    _image_gray(image_gray),
     _widget(widget) {}
 
-void PointDetector::detect()
+void PointDetector::detect(const cv::Mat& image, const cv::Mat& gray)
 {
-  _points_image = _image.clone();
+  _points_image = image.clone();
 
   cv::goodFeaturesToTrack(
-    _image_gray, _points,
+    gray, _points,
     _widget._max_corners->value(),
     _widget._qualityLevel->value(),
     _widget._minDistance->value(),
