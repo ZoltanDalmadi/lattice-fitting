@@ -23,10 +23,9 @@ ThresholdWidget::ThresholdWidget(QWidget* parent)
 
 void ThresholdWidget::setLevel(int level)
 {
-  _level = level;
-  _slider->setValue(_level);
-  _spinbox->setValue(_level);
-  emit levelChanged(_level);
+  _slider->setValue(level);
+  _spinbox->setValue(level);
+  emit levelChanged(level);
 }
 
 void ThresholdWidget::createConnections()

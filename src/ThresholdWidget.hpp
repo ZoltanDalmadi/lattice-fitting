@@ -6,7 +6,7 @@ class ThresholdWidget : public QGroupBox
   Q_OBJECT
 public:
   explicit ThresholdWidget(QWidget* parent = 0);
-  int level() const { return _level; }
+  int level() const { return _spinbox->value(); }
 
 signals:
   void levelChanged(int level);
@@ -20,5 +20,4 @@ private:
   QLabel* _label;
   QSlider* _slider;
   QSpinBox* _spinbox;
-  int _level;
 };
