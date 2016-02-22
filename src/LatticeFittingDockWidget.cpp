@@ -1,10 +1,12 @@
 #include <QtWidgets>
 #include "LatticeFittingDockWidget.hpp"
 #include "ThresholdWidget.hpp"
+#include "PointDetectorWidget.hpp"
 
 LatticeFittingDockWidget::LatticeFittingDockWidget(QWidget* parent)
   : QDockWidget(QStringLiteral("Image Tools"), parent),
-    _thresholdWidget(new ThresholdWidget(this))
+    _thresholdWidget(new ThresholdWidget(this)),
+    _pointDetectorWidget(new PointDetectorWidget(this))
 {
   setFeatures(QDockWidget::DockWidgetMovable);
 
@@ -12,6 +14,7 @@ LatticeFittingDockWidget::LatticeFittingDockWidget(QWidget* parent)
   auto layout = new QVBoxLayout(contents);
 
   layout->addWidget(_thresholdWidget);
+  layout->addWidget(_pointDetectorWidget);
 
   layout->addStretch();
   setWidget(contents);
