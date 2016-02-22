@@ -41,6 +41,11 @@ public slots:
     setMaximum(static_cast<int>(value * _resolution));
   }
 
+  void setDoubleMinimum(double value)
+  {
+    setMinimum(static_cast<int>(value * _resolution));
+  }
+
 private:
   double _resolution = 100.0;
 };
@@ -54,15 +59,23 @@ public:
   IntSliderSpinBoxCombo(const QString& label, int maxValue, QWidget* parent = 0);
 
   int value() const { return _slider->value(); }
+  void setValue(int value)
+  {
+    _slider->setValue(value);
+    _spinbox->setValue(value);
+  }
+
+  int minimum() const { return _slider->minimum(); }
   int maximum() const { return _slider->maximum(); }
 
 signals:
   void valueChanged(int);
+  void minimumChanged(int);
   void maximumChanged(int);
 
 public slots:
-//  void notifyValueChanged(int value);
-  void setValue(int value);
+  void notifyValueChanged(int value);
+  void setMinimum(int value);
   void setMaximum(int value);
 
 private:
@@ -79,17 +92,26 @@ public:
   DoubleSliderSpinBoxCombo(QWidget* parent = 0);
   DoubleSliderSpinBoxCombo(const QString& label, double maxValue, QWidget* parent = 0);
 
-  double value() const { return _slider->value(); }
-  double maximum() const { return _slider->maximum(); }
+  double value() const { return _spinbox->value(); }
+  void setValue(double value)
+  {
+    _slider->setDoubleValue(value);
+    _spinbox->setValue(value);
+  }
+
+  double minimum() const { return _spinbox->minimum(); }
+  double maximum() const { return _spinbox->maximum(); }
 
 signals:
   void valueChanged(double);
+  void minimumChanged(double);
   void maximumChanged(double);
 
 public slots:
-//  void notifyValueChanged(double value);
-  void setValue(double value);
+  void notifyValueChanged(double value);
+  void setMinimum(double value);
   void setMaximum(double value);
+  void setSingleStep(double value);
 
 private:
   QLabel* _label;
@@ -109,22 +131,14 @@ signals:
 
 private slots:
   void notifyParameterChanged();
-//  void setMaxCorners(int maxCorners);
-//  void setQualityLevel(double quality);
-//  void setMinDistance(double distance);
-//  void setBlockSize(int blockSize);
-//  void setPointRadius(int pointRadius);
-//  void setUseHarrisDetector(bool value);
-//  void setK(double k);
 
 private:
+  friend class PointDetector;
   void createConnections();
 
-  QCheckBox* _useHarrisDetector;
   IntSliderSpinBoxCombo* _max_corners; // 25
   DoubleSliderSpinBoxCombo* _qualityLevel; // 0.01
   DoubleSliderSpinBoxCombo* _minDistance; // 10.0
   IntSliderSpinBoxCombo* _blockSize; // 3
   IntSliderSpinBoxCombo* _pointRadius; // 4
-  DoubleSliderSpinBoxCombo* _k; // 0.04
 };
