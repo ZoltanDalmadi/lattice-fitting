@@ -11,7 +11,8 @@ public:
   PointDetector(PointDetectorWidget& widget, QObject* parent = 0);
 
 public slots:
-  void detect(const cv::Mat& image, const cv::Mat& gray);
+  void detect(const cv::Mat& gray);
+  void drawPoints(QPixmap& pixmap);
 
 private:
   friend class LatticeFittingWindow;

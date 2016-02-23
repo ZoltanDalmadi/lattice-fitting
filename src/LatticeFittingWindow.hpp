@@ -51,6 +51,8 @@ private:
   QMenu* _detectMenu;
 
   cv::Mat _cvImage;
+  QPixmap _originalPixmap;
+
   cv::Mat _cvThresh;
   cv::Mat _cvGray;
 };

@@ -1,4 +1,3 @@
-#include <opencv2/imgproc.hpp>
 #include "PointDetector.hpp"
 
 PointDetector::PointDetector
@@ -6,10 +5,8 @@ PointDetector::PointDetector
   : QObject(parent),
     _widget(widget) {}
 
-void PointDetector::detect(const cv::Mat& image, const cv::Mat& gray)
+void PointDetector::detect(const cv::Mat& gray)
 {
-  _points_image = image.clone();
-
   cv::goodFeaturesToTrack(
     gray, _points,
     _widget._max_corners->value(),
@@ -20,8 +17,15 @@ void PointDetector::detect(const cv::Mat& image, const cv::Mat& gray)
     false,
     0.04
   );
+}
 
-  for (const auto& point : _points)
-    cv::circle(_points_image, point, _widget._pointRadius->value(),
-               cv::Scalar(0, 0, 255), -1, 8, 0);
+void PointDetector::drawPoints(QPixmap& pixmap)
+{
+  QPainter painter(&pixmap);
+  painter.setPen(QPen(Qt::red, 2));
+  auto radius = _widget._pointRadius->value();
+
+  for (const auto& point : _points) {
+    painter.drawEllipse(QPoint(point.x, point.y), radius, radius);
+  }
 }

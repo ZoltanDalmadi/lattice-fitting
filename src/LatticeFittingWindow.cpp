@@ -60,11 +60,15 @@ bool LatticeFittingWindow::loadFile(const QString& fileName)
     return false;
   }
 
+  _originalPixmap = mat2QPixmap(_cvImage);
   resetImage();
 
   cv::cvtColor(_cvImage, _cvGray, cv::COLOR_BGR2GRAY);
 
   setWindowFilePath(fileName);
+
+  _dockWidget->_thresholdWidget->setChecked(false);
+  _dockWidget->_pointDetectorWidget->setChecked(false);
 
   statusBar()->showMessage(QStringLiteral("Image Loaded successfully."), 10000);
 
@@ -82,18 +86,18 @@ void LatticeFittingWindow::open()
 
 void LatticeFittingWindow::detect()
 {
+  QPixmap pixmap;
+
   if (_dockWidget->_thresholdWidget->isChecked()) {
-    _pointDetector->detect(_cvThresh, _cvThresh);
-    _imageLabel->setPixmap(
-      mat2QPixmapGray(_pointDetector->_points_image)
-    );
+    _pointDetector->detect(_cvThresh);
+    pixmap = mat2QPixmapGray(_cvThresh);
   } else {
-    _pointDetector->detect(_cvImage, _cvGray);
-    _imageLabel->setPixmap(
-      mat2QPixmap(_pointDetector->_points_image)
-    );
+    _pointDetector->detect(_cvGray);
+    pixmap = _originalPixmap;
   }
 
+  _pointDetector->drawPoints(pixmap);
+  _imageLabel->setPixmap(pixmap);
   _imageLabel->adjustSize();
 }
 
@@ -112,8 +116,13 @@ void LatticeFittingWindow::toggleDetect(bool toggle)
 void LatticeFittingWindow::threshold(int value)
 {
   applyThreshold(_cvGray, _cvThresh, static_cast<double>(value));
-  _imageLabel->setPixmap(mat2QPixmapGray(_cvThresh));
-  _imageLabel->adjustSize();
+
+  if (_dockWidget->_pointDetectorWidget->isChecked()) {
+    detect();
+  } else {
+    _imageLabel->setPixmap(mat2QPixmapGray(_cvThresh));
+    _imageLabel->adjustSize();
+  }
 }
 
 void LatticeFittingWindow::toggleThreshold(bool toggle)
@@ -168,6 +177,6 @@ void LatticeFittingWindow::createMenus()
 
 void LatticeFittingWindow::resetImage()
 {
-  _imageLabel->setPixmap(mat2QPixmap(_cvImage));
+  _imageLabel->setPixmap(_originalPixmap);
   _imageLabel->adjustSize();
 }
