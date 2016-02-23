@@ -1,14 +1,13 @@
 #include <QtWidgets>
 #include "LatticeFittingWindow.hpp"
 #include "PointDetector.hpp"
-#include "ImageProcessor.hpp"
+#include "functions.hpp"
 #include "LatticeFittingDockWidget.hpp"
 
 LatticeFittingWindow::LatticeFittingWindow()
   : _imageLabel(new QLabel(this)),
     _scrollArea(new QScrollArea(this)),
     _dockWidget(new LatticeFittingDockWidget(this)),
-    _imageProcessor(new ImageProcessor(this)),
     _pointDetector(new PointDetector(*_dockWidget->_pointDetectorWidget, this))
 {
   _imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
@@ -86,12 +85,12 @@ void LatticeFittingWindow::detect()
   if (_dockWidget->_thresholdWidget->isChecked()) {
     _pointDetector->detect(_cvThresh, _cvThresh);
     _imageLabel->setPixmap(
-      _imageProcessor->mat2QPixmapGray(_pointDetector->_points_image)
+      mat2QPixmapGray(_pointDetector->_points_image)
     );
   } else {
     _pointDetector->detect(_cvImage, _cvGray);
     _imageLabel->setPixmap(
-      _imageProcessor->mat2QPixmap(_pointDetector->_points_image)
+      mat2QPixmap(_pointDetector->_points_image)
     );
   }
 
@@ -112,8 +111,8 @@ void LatticeFittingWindow::toggleDetect(bool toggle)
 
 void LatticeFittingWindow::threshold(int value)
 {
-  _imageProcessor->threshold(_cvGray, _cvThresh, static_cast<double>(value));
-  _imageLabel->setPixmap(_imageProcessor->mat2QPixmapGray(_cvThresh));
+  applyThreshold(_cvGray, _cvThresh, static_cast<double>(value));
+  _imageLabel->setPixmap(mat2QPixmapGray(_cvThresh));
   _imageLabel->adjustSize();
 }
 
@@ -169,6 +168,6 @@ void LatticeFittingWindow::createMenus()
 
 void LatticeFittingWindow::resetImage()
 {
-  _imageLabel->setPixmap(_imageProcessor->mat2QPixmap(_cvImage));
+  _imageLabel->setPixmap(mat2QPixmap(_cvImage));
   _imageLabel->adjustSize();
 }
