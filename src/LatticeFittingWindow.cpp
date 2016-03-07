@@ -82,6 +82,8 @@ void LatticeFittingWindow::open()
   if (!_openDialog->selectedFiles().isEmpty())
     _openDialog->setDirectory(
       QFileInfo(_openDialog->selectedFiles().first()).path());
+
+  _dockWidget->setEnabled(true);
 }
 
 void LatticeFittingWindow::detect()
