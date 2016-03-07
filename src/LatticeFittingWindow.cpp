@@ -90,19 +90,16 @@ void LatticeFittingWindow::open()
 
 void LatticeFittingWindow::detect()
 {
-  QPixmap pixmap;
-
   if (_dockWidget->_thresholdWidget->isChecked()) {
     _pointDetector->detect(_cvThresh);
-    pixmap = mat2QPixmapGray(_cvThresh);
+    _lastPixmap = mat2QPixmapGray(_cvThresh);
   } else {
     _pointDetector->detect(_cvGray);
-    pixmap = _originalPixmap;
+    _lastPixmap = _originalPixmap;
   }
 
-  _pointDetector->drawPoints(pixmap);
-  _imageLabel->setPixmap(pixmap);
-  _lastPixmap = pixmap;
+  _pointDetector->drawPoints(_lastPixmap);
+  _imageLabel->setPixmap(_lastPixmap);
   _imageLabel->adjustSize();
 }
 
@@ -142,26 +139,19 @@ void LatticeFittingWindow::toggleThreshold(bool toggle)
     detect();
 }
 
-void LatticeFittingWindow::drawGrid()
+void LatticeFittingWindow::drawGrid(const Lattice& lattice)
 {
   QPainter painter(&_lastPixmap);
   painter.setPen(QPen(Qt::red, 2));
 
-  std::vector<cv::Point2f> hull;
-  cv::convexHull(_pointDetector->_points, hull);
-
-  QPolygon poly;
-
-  for(const auto& point : hull)
-    poly.append(QPoint(point.x, point.y));
-
+  auto poly = convexHull();
   painter.drawConvexPolygon(poly);
 
   _imageLabel->setPixmap(_lastPixmap);
   _imageLabel->adjustSize();
 
   QString message(QStringLiteral("Lattice found. Total error: "));
-  message.append(QString::number(_latticeFitter->best_lattice.total_error));
+  message.append(QString::number(lattice.total_error));
   statusBar()->showMessage(message);
 }
 
@@ -179,14 +169,17 @@ void LatticeFittingWindow::createActions()
   _detectAct->setShortcut(tr("Ctrl+P"));
   connect(_detectAct, &QAction::triggered, this, &LatticeFittingWindow::detect);
 
-  connect(_dockWidget->_pointDetectorWidget, SIGNAL(parameterChanged()), this,
-          SLOT(detect()));
-  connect(_dockWidget->_pointDetectorWidget, SIGNAL(toggled(bool)), this,
-          SLOT(toggleDetect(bool)));
-  connect(_dockWidget->_thresholdWidget, SIGNAL(levelChanged(int)), this,
-          SLOT(threshold(int)));
-  connect(_dockWidget->_thresholdWidget, SIGNAL(toggled(bool)), this,
-          SLOT(toggleThreshold(bool)));
+  connect(_dockWidget->_pointDetectorWidget, &PointDetectorWidget::parameterChanged,
+          this, &LatticeFittingWindow::detect);
+
+  connect(_dockWidget->_pointDetectorWidget, &PointDetectorWidget::toggled,
+          this, &LatticeFittingWindow::toggleDetect);
+
+  connect(_dockWidget->_thresholdWidget, &ThresholdWidget::levelChanged,
+          this, &LatticeFittingWindow::threshold);
+
+  connect(_dockWidget->_thresholdWidget, &ThresholdWidget::toggled,
+          this, &LatticeFittingWindow::toggleThreshold);
 
   connect(_dockWidget->_latticeFitterWidget->button(), &QPushButton::released,
           _latticeFitter,
@@ -216,4 +209,17 @@ void LatticeFittingWindow::resetImage()
 {
   _imageLabel->setPixmap(_originalPixmap);
   _imageLabel->adjustSize();
+}
+
+QPolygon LatticeFittingWindow::convexHull() const
+{
+  std::vector<cv::Point2f> hull;
+  cv::convexHull(_pointDetector->_points, hull);
+
+  QPolygon poly;
+
+  for (const auto& point : hull)
+    poly.append(QPoint(point.x, point.y));
+
+  return poly;
 }

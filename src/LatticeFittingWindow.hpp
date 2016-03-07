@@ -10,9 +10,11 @@ class QScrollBar;
 class QSlider;
 class QGridLayout;
 class QFileDialog;
+class QPolygon;
 class ImageProcessor;
 class PointDetector;
 class LatticeFittingDockWidget;
+class Lattice;
 class LatticeFitter;
 
 class LatticeFittingWindow : public QMainWindow
@@ -29,12 +31,13 @@ private slots:
   void toggleDetect(bool toggle);
   void threshold(int value);
   void toggleThreshold(bool toggle);
-  void drawGrid();
+  void drawGrid(const Lattice& lattice);
 
 private:
   void createActions();
   void createMenus();
   void resetImage();
+  QPolygon convexHull() const;
 
   QPixmap _lastPixmap;
   QLabel* _imageLabel;
