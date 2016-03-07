@@ -17,7 +17,7 @@ void LatticeFitter::findBestLattice(const std::vector<cv::Point2f>& points)
     return l1.total_error < l2.total_error;
   });
 
-  emit foundBestLattice();
+  emit foundBestLattice(best_lattice);
 }
 
 Lattice LatticeFitter::bestLatticeForOrigin(
@@ -64,6 +64,6 @@ void LatticeFitter::calculateErrorForLattice(Lattice& lattice,
     NTL::NearVector(v, lattice.bases, vec);
     auto u = v - vec;
 
-    lattice.total_error += sq(NTL::to_float(u[0])) + sq(NTL::to_float(u[1]));
+    lattice.total_error += std::hypot(NTL::to_double(u[0]), NTL::to_double(u[1]));
   }
 }

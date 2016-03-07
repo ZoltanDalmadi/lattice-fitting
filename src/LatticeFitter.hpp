@@ -6,14 +6,14 @@
 struct Lattice {
   NTL::vec_ZZ origin;
   NTL::mat_ZZ bases;
-  unsigned total_error;
+  double total_error;
 };
 
 inline bool operator==(const Lattice& lhs, const Lattice& rhs)
 {
   return lhs.origin == rhs.origin &&
-      lhs.bases == rhs.bases &&
-      lhs.total_error == rhs.total_error;
+         lhs.bases == rhs.bases &&
+         lhs.total_error == rhs.total_error;
 }
 
 inline bool operator!=(const Lattice& lhs, const Lattice& rhs)
@@ -31,7 +31,7 @@ public:
   Lattice best_lattice;
 
 signals:
-  void foundBestLattice();
+  void foundBestLattice(const Lattice&);
 
 public slots:
   void findBestLattice(const std::vector<cv::Point2f>& points);
@@ -44,11 +44,10 @@ private:
   (Lattice& lattice, const std::vector<NTL::vec_ZZ>& points) const;
 
   NTL::vec_ZZ cvPoint2fToNTLVec(const cv::Point2f& point) const;
-  unsigned sq(unsigned value) const;
+  double sq(double value) const;
 };
 
-inline NTL::vec_ZZ LatticeFitter::cvPoint2fToNTLVec(
-    const cv::Point2f&point) const
+inline NTL::vec_ZZ LatticeFitter::cvPoint2fToNTLVec(const cv::Point2f& point) const
 {
   NTL::vec_ZZ result;
   result.append(NTL::to_ZZ(point.x));
@@ -56,7 +55,7 @@ inline NTL::vec_ZZ LatticeFitter::cvPoint2fToNTLVec(
   return result;
 }
 
-inline unsigned LatticeFitter::sq(unsigned value) const
+inline double LatticeFitter::sq(double value) const
 {
   return value * value;
 }
