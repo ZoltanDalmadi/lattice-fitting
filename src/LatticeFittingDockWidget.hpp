@@ -2,6 +2,7 @@
 #include <QtWidgets>
 #include "ThresholdWidget.hpp"
 #include "PointDetectorWidget.hpp"
+#include "LatticeFitterWidget.hpp"
 
 class LatticeFittingDockWidget : public QDockWidget
 {
@@ -13,4 +14,5 @@ private:
   friend class LatticeFittingWindow;
   ThresholdWidget* _thresholdWidget;
   PointDetectorWidget* _pointDetectorWidget;
+  LatticeFitterWidget* _latticeFitterWidget;
 };
