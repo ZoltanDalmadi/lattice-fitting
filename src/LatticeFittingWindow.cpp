@@ -2,13 +2,15 @@
 #include "LatticeFittingWindow.hpp"
 #include "PointDetector.hpp"
 #include "functions.hpp"
+#include "LatticeFitter.hpp"
 #include "LatticeFittingDockWidget.hpp"
 
 LatticeFittingWindow::LatticeFittingWindow()
   : _imageLabel(new QLabel(this)),
     _scrollArea(new QScrollArea(this)),
     _dockWidget(new LatticeFittingDockWidget(this)),
-    _pointDetector(new PointDetector(*_dockWidget->_pointDetectorWidget, this))
+    _pointDetector(new PointDetector(*_dockWidget->_pointDetectorWidget, this)),
+    _latticeFitter(new LatticeFitter(this))
 {
   _imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
   _imageLabel->setScaledContents(true);
@@ -100,6 +102,7 @@ void LatticeFittingWindow::detect()
 
   _pointDetector->drawPoints(pixmap);
   _imageLabel->setPixmap(pixmap);
+  _lastPixmap = pixmap;
   _imageLabel->adjustSize();
 }
 
@@ -139,6 +142,29 @@ void LatticeFittingWindow::toggleThreshold(bool toggle)
     detect();
 }
 
+void LatticeFittingWindow::drawGrid()
+{
+  QPainter painter(&_lastPixmap);
+  painter.setPen(QPen(Qt::red, 2));
+
+  std::vector<cv::Point2f> hull;
+  cv::convexHull(_pointDetector->_points, hull);
+
+  QPolygon poly;
+
+  for(const auto& point : hull)
+    poly.append(QPoint(point.x, point.y));
+
+  painter.drawConvexPolygon(poly);
+
+  _imageLabel->setPixmap(_lastPixmap);
+  _imageLabel->adjustSize();
+
+  QString message(QStringLiteral("Lattice found. Total error: "));
+  message.append(QString::number(_latticeFitter->best_lattice.total_error));
+  statusBar()->showMessage(message);
+}
+
 void LatticeFittingWindow::createActions()
 {
   _openAct = new QAction(tr("&Open Image..."), this);
@@ -161,6 +187,15 @@ void LatticeFittingWindow::createActions()
           SLOT(threshold(int)));
   connect(_dockWidget->_thresholdWidget, SIGNAL(toggled(bool)), this,
           SLOT(toggleThreshold(bool)));
+
+  connect(_dockWidget->_latticeFitterWidget->button(), &QPushButton::released,
+          _latticeFitter,
+  [this]() {
+    _latticeFitter->findBestLattice(_pointDetector->_points);
+  });
+
+  connect(_latticeFitter, &LatticeFitter::foundBestLattice,
+          this, &LatticeFittingWindow::drawGrid);
 }
 
 void LatticeFittingWindow::createMenus()

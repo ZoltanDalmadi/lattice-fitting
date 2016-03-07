@@ -13,6 +13,7 @@ class QFileDialog;
 class ImageProcessor;
 class PointDetector;
 class LatticeFittingDockWidget;
+class LatticeFitter;
 
 class LatticeFittingWindow : public QMainWindow
 {
@@ -28,12 +29,14 @@ private slots:
   void toggleDetect(bool toggle);
   void threshold(int value);
   void toggleThreshold(bool toggle);
+  void drawGrid();
 
 private:
   void createActions();
   void createMenus();
   void resetImage();
 
+  QPixmap _lastPixmap;
   QLabel* _imageLabel;
   QScrollArea* _scrollArea;
 
@@ -41,6 +44,7 @@ private:
 
   ImageProcessor* _imageProcessor;
   PointDetector* _pointDetector;
+  LatticeFitter* _latticeFitter;
 
   QFileDialog* _openDialog;
   QAction* _openAct;
