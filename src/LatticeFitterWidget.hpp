@@ -9,6 +9,8 @@ class LatticeFitterWidget : public QGroupBox
 public:
   explicit LatticeFitterWidget(QWidget* parent = 0);
 
+  QPushButton* button() const { return _button; }
+
 private:
   QPushButton* _button;
 };
