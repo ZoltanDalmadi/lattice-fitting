@@ -2,6 +2,7 @@
 
 #include <QGroupBox>
 #include <QPushButton>
+#include <QProgressBar>
 
 class LatticeFitterWidget : public QGroupBox
 {
@@ -9,8 +10,6 @@ class LatticeFitterWidget : public QGroupBox
 public:
   explicit LatticeFitterWidget(QWidget* parent = 0);
 
-  QPushButton* button() const { return _button; }
-
-private:
   QPushButton* _button;
+  QProgressBar* _progressBar;
 };

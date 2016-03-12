@@ -1,4 +1,5 @@
 #include <QtWidgets>
+#include <QtConcurrent/QtConcurrent>
 #include "LatticeFittingWindow.hpp"
 #include "PointDetector.hpp"
 #include "functions.hpp"
@@ -181,14 +182,28 @@ void LatticeFittingWindow::createActions()
   connect(_dockWidget->_thresholdWidget, &ThresholdWidget::toggled,
           this, &LatticeFittingWindow::toggleThreshold);
 
-  connect(_dockWidget->_latticeFitterWidget->button(), &QPushButton::released,
+  connect(_dockWidget->_latticeFitterWidget->_button, &QPushButton::released,
           _latticeFitter,
   [this]() {
-    _latticeFitter->findBestLattice(_pointDetector->_points);
+    QtConcurrent::run(_latticeFitter,
+                      &LatticeFitter::findBestLattice,
+                      _pointDetector->_points);
+//    _latticeFitter->findBestLattice(_pointDetector->_points);
   });
+
+  qRegisterMetaType<Lattice>("Lattice");
 
   connect(_latticeFitter, &LatticeFitter::foundBestLattice,
           this, &LatticeFittingWindow::drawGrid);
+
+  connect(_latticeFitter, &LatticeFitter::latticeFittingStarted,
+          _dockWidget->_latticeFitterWidget->_progressBar, &QProgressBar::show);
+
+  connect(_latticeFitter, &LatticeFitter::progressUpdated,
+          _dockWidget->_latticeFitterWidget->_progressBar, &QProgressBar::setValue);
+
+  connect(_latticeFitter, &LatticeFitter::foundBestLattice,
+          _dockWidget->_latticeFitterWidget->_progressBar, &QProgressBar::hide);
 }
 
 void LatticeFittingWindow::createMenus()

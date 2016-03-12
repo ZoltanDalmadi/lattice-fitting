@@ -1,11 +1,14 @@
 #include "LatticeFitterWidget.hpp"
-#include <QHBoxLayout>
+#include <QVBoxLayout>
 
 LatticeFitterWidget::LatticeFitterWidget(QWidget* parent)
   : QGroupBox(QStringLiteral("Find best lattice"), parent),
-    _button(new QPushButton(QStringLiteral("Start"), parent))
+    _button(new QPushButton(QStringLiteral("Start"), parent)),
+    _progressBar(new QProgressBar(parent))
 {
   setEnabled(false);
-  auto layout = new QHBoxLayout(this);
+  _progressBar->hide();
+  auto layout = new QVBoxLayout(this);
   layout->addWidget(_button);
+  layout->addWidget(_progressBar);
 }
