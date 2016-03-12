@@ -31,6 +31,8 @@ public:
   Lattice best_lattice;
 
 signals:
+  void latticeFittingStarted();
+  void progressUpdated(int);
   void foundBestLattice(const Lattice&);
 
 public slots:

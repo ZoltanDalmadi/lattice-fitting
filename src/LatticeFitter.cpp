@@ -7,10 +7,19 @@ LatticeFitter::LatticeFitter(QObject* parent)
 
 void LatticeFitter::findBestLattice(const std::vector<cv::Point2f>& points)
 {
+  emit latticeFittingStarted();
+  emit progressUpdated(0);
+
   std::vector<Lattice> bestLattices;
 
-  for (const auto& p : points)
+  double progress = 0.0;
+  double progress_delta = 100.0 / points.size();
+
+  for (const auto& p : points) {
     bestLattices.emplace_back(bestLatticeForOrigin(p, points));
+    progress += progress_delta;
+    emit progressUpdated(static_cast<int>(std::round(progress)));
+  }
 
   best_lattice = *std::min_element(bestLattices.cbegin(), bestLattices.cend(),
   [](const Lattice& l1, const Lattice& l2) {
