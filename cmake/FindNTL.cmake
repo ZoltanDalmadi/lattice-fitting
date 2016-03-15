@@ -36,10 +36,5 @@ if(NTL_FOUND)
 
   set(NTL_INCLUDE_DIRS ${NTL_INCLUDE_DIR})
   set(NTL_LIBRARIES ${NTL_LIBRARY})
-  include_directories(${NTL_INCLUDE_DIRS})
-
-  if (NOT MSVC)
-    list(APPEND CMAKE_EXE_LINKER_FLAGS "-lntl")
-  endif()
 
 endif(NTL_FOUND)

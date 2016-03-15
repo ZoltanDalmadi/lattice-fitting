@@ -9,6 +9,7 @@ target_link_libraries(functions_test
   Qt5::Widgets
   ${OpenCV_LIBS}
   ${GTEST_BOTH_LIBRARIES}
+  ${NTL_LIBRARIES}
 )
 
 add_test(FunctionsTest functions_test)
