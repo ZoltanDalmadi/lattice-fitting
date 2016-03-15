@@ -12,7 +12,8 @@ BOOST_GEOMETRY_REGISTER_POINT_2D_GET_SET(
     QPoint, int, boost::geometry::cs::cartesian,
     x, y, setX, setY)
 
-BOOST_GEOMETRY_REGISTER_LINESTRING_TEMPLATED(std::vector)
+BOOST_GEOMETRY_REGISTER_LINESTRING_TEMPLATED(QVector)
+BOOST_GEOMETRY_REGISTER_LINESTRING(QPolygon)
 
 QPixmap mat2QPixmap(const cv::Mat& image)
 {
@@ -48,7 +49,7 @@ QPolygon convexHull(const std::vector<cv::Point2f>& points)
   return poly;
 }
 
-QVector<QPoint> generateGrid(const Lattice& lattice, const QPolygon& poly)
+QVector<QPoint> generateGrid(const Lattice& lattice, const QPolygon& hull)
 {
   QPoint origin (
     NTL::to_int(lattice.origin[0]),
@@ -65,7 +66,13 @@ QVector<QPoint> generateGrid(const Lattice& lattice, const QPolygon& poly)
     NTL::to_int(lattice.bases(2, 2))
   };
 
-  QVector<QPoint> grid;
+  QVector<QPoint> line {
+    {0, 500}, {1000, 100}
+  };
 
-  return grid;
+  QVector<QPoint> intersection_points;
+
+  boost::geometry::intersection(hull, line, intersection_points);
+
+  return intersection_points;
 }

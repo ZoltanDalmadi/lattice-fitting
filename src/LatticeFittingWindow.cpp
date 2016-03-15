@@ -136,6 +136,7 @@ void LatticeFittingWindow::drawGrid(const Lattice& lattice)
   painter.drawConvexPolygon(poly);
 
   auto gridPoints = generateGrid(lattice, poly);
+  painter.drawLines(gridPoints);
 
   setImageToLast();
 
