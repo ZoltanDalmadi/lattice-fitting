@@ -28,21 +28,9 @@ LatticeFittingWindow::LatticeFittingWindow()
 
   createActions();
   createMenus();
-
-  // dialog --------------------------------------------------------------------
-  const auto picturesLocations =
-    QStandardPaths::standardLocations(QStandardPaths::PicturesLocation);
-
-  _openDialog = new QFileDialog(
-    this, tr("Open File"),
-    picturesLocations.isEmpty() ? QDir::currentPath() : picturesLocations.last()
-  );
-
-  _openDialog->setAcceptMode(QFileDialog::AcceptOpen);
-  _openDialog->selectMimeTypeFilter("image/jpeg");
+  createDialog();
 
   setStatusBar(new QStatusBar);
-
   addDockWidget(Qt::RightDockWidgetArea, _dockWidget);
 
   resize(QGuiApplication::primaryScreen()->availableSize() / 1.5);
@@ -100,8 +88,7 @@ void LatticeFittingWindow::detect()
   }
 
   _pointDetector->drawPoints(_lastPixmap);
-  _imageLabel->setPixmap(_lastPixmap);
-  _imageLabel->adjustSize();
+  setImageToLast();
 }
 
 void LatticeFittingWindow::toggleDetect(bool toggle)
@@ -145,11 +132,12 @@ void LatticeFittingWindow::drawGrid(const Lattice& lattice)
   QPainter painter(&_lastPixmap);
   painter.setPen(QPen(Qt::red, 2));
 
-  auto poly = convexHull();
+  auto poly = convexHull(_pointDetector->_points);
   painter.drawConvexPolygon(poly);
 
-  _imageLabel->setPixmap(_lastPixmap);
-  _imageLabel->adjustSize();
+  auto gridPoints = generateGrid(lattice, poly);
+
+  setImageToLast();
 
   QString message(QStringLiteral("Lattice found. Total error: "));
   message.append(QString::number(lattice.total_error));
@@ -168,6 +156,7 @@ void LatticeFittingWindow::createActions()
 
   _detectAct = new QAction(tr("Detect Grid &Points"), this);
   _detectAct->setShortcut(tr("Ctrl+P"));
+
   connect(_detectAct, &QAction::triggered, this, &LatticeFittingWindow::detect);
 
   connect(_dockWidget->_pointDetectorWidget, &PointDetectorWidget::parameterChanged,
@@ -185,10 +174,8 @@ void LatticeFittingWindow::createActions()
   connect(_dockWidget->_latticeFitterWidget->_button, &QPushButton::released,
           _latticeFitter,
   [this]() {
-    QtConcurrent::run(_latticeFitter,
-                      &LatticeFitter::findBestLattice,
-                      _pointDetector->_points);
-//    _latticeFitter->findBestLattice(_pointDetector->_points);
+    QtConcurrent::run(
+          _latticeFitter, &LatticeFitter::findBestLattice, _pointDetector->_points);
   });
 
   qRegisterMetaType<Lattice>("Lattice");
@@ -220,21 +207,28 @@ void LatticeFittingWindow::createMenus()
   menuBar()->addMenu(_detectMenu);
 }
 
+void LatticeFittingWindow::createDialog()
+{
+  const auto picturesLocations =
+    QStandardPaths::standardLocations(QStandardPaths::PicturesLocation);
+
+  _openDialog = new QFileDialog(
+    this, tr("Open File"),
+    picturesLocations.isEmpty() ? QDir::currentPath() : picturesLocations.last()
+  );
+
+  _openDialog->setAcceptMode(QFileDialog::AcceptOpen);
+  _openDialog->selectMimeTypeFilter("image/jpeg");
+}
+
 void LatticeFittingWindow::resetImage()
 {
   _imageLabel->setPixmap(_originalPixmap);
   _imageLabel->adjustSize();
 }
 
-QPolygon LatticeFittingWindow::convexHull() const
+void LatticeFittingWindow::setImageToLast()
 {
-  std::vector<cv::Point2f> hull;
-  cv::convexHull(_pointDetector->_points, hull);
-
-  QPolygon poly;
-
-  for (const auto& point : hull)
-    poly.append(QPoint(point.x, point.y));
-
-  return poly;
+  _imageLabel->setPixmap(_lastPixmap);
+  _imageLabel->adjustSize();
 }

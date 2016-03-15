@@ -23,7 +23,6 @@ class LatticeFittingWindow : public QMainWindow
 
 public:
   LatticeFittingWindow();
-  bool loadFile(const QString&);
 
 private slots:
   void open();
@@ -36,8 +35,10 @@ private slots:
 private:
   void createActions();
   void createMenus();
+  void createDialog();
+  bool loadFile(const QString&);
   void resetImage();
-  QPolygon convexHull() const;
+  void setImageToLast();
 
   QPixmap _lastPixmap;
   QLabel* _imageLabel;
