@@ -132,10 +132,10 @@ void LatticeFittingWindow::drawGrid(const Lattice& lattice)
   QPainter painter(&_lastPixmap);
   painter.setPen(QPen(Qt::red, 2));
 
-  auto poly = convexHull(_pointDetector->_points);
-  painter.drawConvexPolygon(poly);
+  auto gridPoints = generateGrid(lattice,
+      _lastPixmap.width(), _lastPixmap.height());
 
-  auto gridPoints = generateGrid(lattice, poly);
+  painter.setPen(QPen(Qt::blue, 1));
   painter.drawLines(gridPoints);
 
   setImageToLast();
