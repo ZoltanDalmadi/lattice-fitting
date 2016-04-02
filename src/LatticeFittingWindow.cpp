@@ -69,6 +69,11 @@ bool LatticeFittingWindow::loadFile(const QString& fileName)
 bool LatticeFittingWindow::loadData(const QString& filename)
 {
   QFile dataFile(filename);
+
+  if(!dataFile.open(QIODevice::ReadOnly)) {
+      QMessageBox::information(0, "error", dataFile.errorString());
+  }
+
   QTextStream stream(&dataFile);
   _pointDetector->_points.clear();
 
@@ -76,15 +81,16 @@ bool LatticeFittingWindow::loadData(const QString& filename)
   while (!stream.atEnd()) {
     stream >> x;
     stream >> y;
-    _pointDetector->_points.emplace_back(roundf(x), roundf(y));
+    _pointDetector->_points.emplace_back(std::roundf(x), std::roundf(y));
   }
 
   auto rect = cv::boundingRect(_pointDetector->_points);
 
-  _originalPixmap = QPixmap(rect.width, rect.height);
-  resetImage();
+  _lastPixmap = QPixmap(rect.width, rect.height);
+  _lastPixmap.fill();
 
-  _pointDetector->drawPoints(_originalPixmap);
+  _pointDetector->drawPoints(_lastPixmap);
+  setImageToLast();
 
   setWindowFilePath(filename);
 
@@ -114,6 +120,11 @@ void LatticeFittingWindow::openData()
   if (!_openDialog->selectedFiles().isEmpty())
     _openDialog->setDirectory(
       QFileInfo(_openDialog->selectedFiles().first()).path());
+
+  _dockWidget->setEnabled(true);
+  _dockWidget->_thresholdWidget->setEnabled(false);
+  _dockWidget->_pointDetectorWidget->setEnabled(false);
+  _dockWidget->_latticeFitterWidget->setEnabled(true);
 }
 
 void LatticeFittingWindow::detect()
