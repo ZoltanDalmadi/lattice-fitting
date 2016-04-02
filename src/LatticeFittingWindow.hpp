@@ -26,6 +26,7 @@ public:
 
 private slots:
   void open();
+  void openData();
   void detect();
   void toggleDetect(bool toggle);
   void threshold(int value);
@@ -37,6 +38,7 @@ private:
   void createMenus();
   void createDialog();
   bool loadFile(const QString&);
+  bool loadData(const QString&);
   void resetImage();
   void setImageToLast();
 
@@ -52,6 +54,7 @@ private:
 
   QFileDialog* _openDialog;
   QAction* _openAct;
+  QAction* _openDataAct;
   QAction* _exitAct;
   QAction* _detectAct;
 

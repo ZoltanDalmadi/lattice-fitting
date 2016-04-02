@@ -66,6 +66,36 @@ bool LatticeFittingWindow::loadFile(const QString& fileName)
   return true;
 }
 
+bool LatticeFittingWindow::loadData(const QString& filename)
+{
+  QFile dataFile(filename);
+  QTextStream stream(&dataFile);
+  _pointDetector->_points.clear();
+
+  float x, y;
+  while (!stream.atEnd()) {
+    stream >> x;
+    stream >> y;
+    _pointDetector->_points.emplace_back(roundf(x), roundf(y));
+  }
+
+  auto rect = cv::boundingRect(_pointDetector->_points);
+
+  _originalPixmap = QPixmap(rect.width, rect.height);
+  resetImage();
+
+  _pointDetector->drawPoints(_originalPixmap);
+
+  setWindowFilePath(filename);
+
+  _dockWidget->_thresholdWidget->setChecked(false);
+  _dockWidget->_pointDetectorWidget->setChecked(false);
+
+  statusBar()->showMessage(QStringLiteral("Input points loaded successfully."), 10000);
+
+  return true;
+}
+
 void LatticeFittingWindow::open()
 {
   while (_openDialog->exec() && !loadFile(_openDialog->selectedFiles().first()));
@@ -75,6 +105,15 @@ void LatticeFittingWindow::open()
       QFileInfo(_openDialog->selectedFiles().first()).path());
 
   _dockWidget->setEnabled(true);
+}
+
+void LatticeFittingWindow::openData()
+{
+  while (_openDialog->exec() && !loadData(_openDialog->selectedFiles().first()));
+
+  if (!_openDialog->selectedFiles().isEmpty())
+    _openDialog->setDirectory(
+      QFileInfo(_openDialog->selectedFiles().first()).path());
 }
 
 void LatticeFittingWindow::detect()
@@ -151,6 +190,10 @@ void LatticeFittingWindow::createActions()
   _openAct->setShortcut(tr("Ctrl+O"));
   connect(_openAct, &QAction::triggered, this, &LatticeFittingWindow::open);
 
+  _openDataAct = new QAction(tr("&Open Data File..."), this);
+  _openDataAct->setShortcut(tr("Ctrl+Shift+O"));
+  connect(_openDataAct, &QAction::triggered, this, &LatticeFittingWindow::openData);
+
   _exitAct = new QAction(tr("E&xit"), this);
   _exitAct->setShortcut(tr("Ctrl+Q"));
   connect(_exitAct, &QAction::triggered, this, &LatticeFittingWindow::close);
@@ -198,6 +241,7 @@ void LatticeFittingWindow::createMenus()
 {
   _fileMenu = new QMenu(tr("&File"), this);
   _fileMenu->addAction(_openAct);
+  _fileMenu->addAction(_openDataAct);
   _fileMenu->addSeparator();
   _fileMenu->addAction(_exitAct);
 
@@ -219,7 +263,6 @@ void LatticeFittingWindow::createDialog()
   );
 
   _openDialog->setAcceptMode(QFileDialog::AcceptOpen);
-  _openDialog->selectMimeTypeFilter("image/jpeg");
 }
 
 void LatticeFittingWindow::resetImage()
